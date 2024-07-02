@@ -6,7 +6,7 @@ public class PlayerCpntroller : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 5f;
     [SerializeField] float rotationSpeed = 500f;
-    [Header("Ground")]
+    [Header("Ground Settings")]
     [SerializeField] float groundCheckRadius = 0.2f;
     [SerializeField] Vector3 groundCheckOffset;
     [SerializeField] LayerMask groundLayer;
@@ -15,6 +15,8 @@ public class PlayerCpntroller : MonoBehaviour
     Animator animator;
     CharacterController characterController;
     bool isGrounded;
+    bool hasControl = true;
+
     float ySpeed;
 
     Quaternion targertRotation;
@@ -44,8 +46,10 @@ public class PlayerCpntroller : MonoBehaviour
 
         var moveDir = cameraController.PlaneRotation * moveInput;
 
+        if (!hasControl)
+            return;
+
         GroundCheck();
-        Debug.Log("Player is grounded: " + isGrounded);
         if (isGrounded) {
             ySpeed = -.75f;
         }
@@ -72,7 +76,17 @@ public class PlayerCpntroller : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(transform.TransformPoint(groundCheckOffset), groundCheckRadius, groundLayer);
     }
+    public void SetControl(bool hasControl)
+    {
+        this.hasControl = hasControl;
+        characterController.enabled = hasControl;
 
+        if (!hasControl)
+        {
+            animator.SetFloat("moveAmount", 0f);
+            targertRotation=transform.rotation;
+        }
+    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;

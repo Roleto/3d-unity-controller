@@ -29,12 +29,12 @@ public class CameraController : MonoBehaviour
         invertXval = (invertX) ? -1 : 1;
         invertYval = (invertY) ? -1 : 1;
 
-        rotationX += Input.GetAxis("Mouse Y") * invertXval * rotationSpeed;
+        rotationX += Input.GetAxis("Camera Y") * invertXval * rotationSpeed;
         rotationX = Mathf.Clamp(rotationX, minVerticalAngle, maxVerticalAngle);
-        rotationY += Input.GetAxis("Mouse X") * invertYval * rotationSpeed;
+        rotationY += Input.GetAxis("Camera X") * invertYval * rotationSpeed;
 
     }
-    // Update is called once per frame
+
     void Update()
     {
         InputChange();
