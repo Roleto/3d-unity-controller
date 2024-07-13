@@ -26,7 +26,7 @@ public class ParkourController : MonoBehaviour
     private void FixedUpdate()
     {
         var hitdata = _scanner.ObstackleCheck();
-        if (Input.GetButton("Jump") && !_playerController.InAction)
+        if (Input.GetButton("Jump") && !_playerController.InAction && !_playerController.IsHanging) 
         {
 
             if (hitdata.forwardHitFound)

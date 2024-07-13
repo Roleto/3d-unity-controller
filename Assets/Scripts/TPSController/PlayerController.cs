@@ -42,12 +42,6 @@ public class PlayerCpntroller : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         enviromentScanner = GetComponent<EnviromentScanner>();
     }
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         float h = Input.GetAxis("Horizontal");
@@ -85,7 +79,7 @@ public class PlayerCpntroller : MonoBehaviour
             }
             else
             {
-            animator.SetFloat("moveAmount", velocity.magnitude / moveSpeed, .2f, Time.deltaTime);
+                animator.SetFloat("moveAmount", velocity.magnitude / moveSpeed, .2f, Time.deltaTime);
             }
         }
         else
@@ -137,7 +131,7 @@ public class PlayerCpntroller : MonoBehaviour
     {
         InAction = true;
         animator.SetBool("mirrorAction", mirror);
-        animator.CrossFade(animName, delayTime);
+        animator.CrossFadeInFixedTime(animName, 0.2f);
         yield return null;
 
         var animaState = animator.GetNextAnimatorStateInfo(0);
@@ -148,13 +142,14 @@ public class PlayerCpntroller : MonoBehaviour
         }
 
         //yield return new WaitForSeconds(animaState.length);
-
+        float rotateStartTime = (matchParams != null) ? matchParams.startTime : 0f;
         float timer = 0f;
         while (timer <= animaState.length)
         {
             timer += Time.deltaTime;
+            float normalizedTime = timer / animaState.length;
 
-            if (rotate)
+            if (rotate && normalizedTime > rotateStartTime)
             {
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, RotationSpeed * Time.deltaTime);
             }
@@ -164,8 +159,8 @@ public class PlayerCpntroller : MonoBehaviour
                 MatchTarget(matchParams);
             }
 
-            //if (!_animator.IsInTransition(0) && timer > .5f)
-            //    break;
+            if (!animator.IsInTransition(0) && timer > .5f)
+                break;
 
             yield return null;
         }
@@ -175,8 +170,6 @@ public class PlayerCpntroller : MonoBehaviour
     void MatchTarget(MatchTargetParams mp)
     {
         if (animator.isMatchingTarget) return;
-        Debug.Log(mp.startTime);
-        Debug.Log(mp.targetTime);
         animator.MatchTarget(mp.pos, transform.rotation, mp.bodyPart, new MatchTargetWeightMask(mp.posWieght, 0), mp.startTime, mp.targetTime);
     }
     public bool HasControl
@@ -212,5 +205,14 @@ public class MatchTargetParams
         posWieght = action.MatchPositionWeight;
         startTime = action.MatchStartTime;
         targetTime = action.MatchTargetTime;
+    }
+
+    public MatchTargetParams(Vector3 pos, AvatarTarget bodyPart, Vector3 posWieght, float startTime, float targetTime)
+    {
+        this.pos = pos;
+        this.bodyPart = bodyPart;
+        this.posWieght = posWieght;
+        this.startTime = startTime;
+        this.targetTime = targetTime;
     }
 }

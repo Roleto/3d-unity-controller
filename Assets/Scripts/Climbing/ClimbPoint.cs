@@ -24,6 +24,17 @@ public class ClimbPoint : MonoBehaviour
 
         neigbors.Add(neigbor);
     }
+    public Neigbor GetNeigbor(Vector2 direction)
+    {
+        Neigbor neigbor = null;
+        if(direction.y != 0)
+        neigbor = neigbors.FirstOrDefault(n => n.direction.y == direction.y);
+
+        if (neigbor == null && direction.x != 0)
+        neigbor = neigbors.FirstOrDefault(n => n.direction.x == direction.x);
+
+        return neigbor;
+    }
 
     private void OnDrawGizmos()
     {
