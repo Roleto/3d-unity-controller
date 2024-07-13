@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class ParkourController : MonoBehaviour
 {
-    bool inAction;
+    [SerializeField] List<ParkourAction> parkourActions;
+    [SerializeField] ParkourAction jumpingDown;
+    [SerializeField] float autoDropHeightLimit = 1f;
 
     EnviromentScanner _scanner;
     Animator _animator;
@@ -23,35 +25,63 @@ public class ParkourController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (Input.GetButton("Jump") && !inAction)
+        var hitdata = _scanner.ObstackleCheck();
+        if (Input.GetButton("Jump") && !_playerController.InAction)
         {
 
-            var hitdata = _scanner.ObstackleCheck();
             if (hitdata.forwardHitFound)
             {
-                StartCoroutine(DoParkorAction());
+                foreach (var action in parkourActions)
+                {
+                    if (action.CheckIfPossible(hitdata, transform))
+                    {
+                        StartCoroutine(DoParkorAction(action));
+                        break;
+                    }
+                }
             }
         }
-        
+
+        if (_playerController.isOnLedge && !_playerController.InAction && !hitdata.forwardHitFound)
+        {
+            bool shouldJump = true;
+            if (_playerController.LedgeData.height > autoDropHeightLimit && !Input.GetButton("Jump"))
+                shouldJump = false;
+
+            if (shouldJump && _playerController.LedgeData.angle <= 50)
+            {
+
+                _playerController.isOnLedge = false;
+                StartCoroutine(DoParkorAction(jumpingDown));
+            }
+        }
+
+
     }
     // Update is called once per frame
     void Update()
     {
     }
 
-    IEnumerator DoParkorAction()
+    IEnumerator DoParkorAction(ParkourAction action)
     {
-        inAction = true;
         _playerController.SetControl(false);
 
-        _animator.CrossFade("StepUp", .2f);
-        yield return null;
+        MatchTargetParams matchParams = null;
+        if (action.EnableTargetMatching)
+        {
+            matchParams = new MatchTargetParams(action);
+        }
 
-        var animaState = _animator.GetNextAnimatorStateInfo(0);
-
-        yield return new WaitForSeconds(animaState.length);
+        yield return _playerController.DoAction(action.AnimName, matchParams, action.TargetRotation, action.RotateToObstacle, action.PostActionDelay, action.DelayTime, action.Mirror);
 
         _playerController.SetControl(true);
-        inAction = false;
+    }
+
+    void MatchTarget(ParkourAction action)
+    {
+        if (_animator.isMatchingTarget) return;
+
+        _animator.MatchTarget(action.MatchPos, transform.rotation, action.MatchBodyPart, new MatchTargetWeightMask(action.MatchPositionWeight, 0), action.MatchStartTime, action.MatchTargetTime);
     }
 }
